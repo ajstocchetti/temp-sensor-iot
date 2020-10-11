@@ -9,7 +9,7 @@ Parameters:
     Default: "home-iot"
   TSTableName:
     Type: String
-    Default: climage
+    Default: climate
 
 Resources:
   # TSDB:
@@ -29,7 +29,7 @@ Resources:
     Properties:
       Handler: index.handler
       Timeout: 10
-      MemorySize: 640
+      MemorySize: 256
       Runtime: nodejs12.x
       CodeUri: climate-processor/
       Policies:
@@ -45,7 +45,6 @@ Resources:
                 - timestream:ListDatabases
                 - timestream:SelectValues
               Resource: "*"
-          Statement:
             - Effect: Allow
               Action:
                 - timestream:*

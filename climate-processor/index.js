@@ -38,7 +38,6 @@ exports.handler = async function(event, context) {
   };
   try {
     const res = await timestreamwrite.writeRecords(params).promise();
-    console.log(res);
   } catch(err) {
     console.log('Error writing to Timestream');
     console.log(err);
