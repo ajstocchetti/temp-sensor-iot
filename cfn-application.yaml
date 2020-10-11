@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+  - AWS::Serverless-2016-10-31
+
+Description: Home (Apartment) IOT Setup
+Parameters:
+  TSDBName:
+    Type: String
+    Default: "home-iot"
+  TSTableName:
+    Type: String
+    Default: climage
+
+Resources:
+  # TSDB:
+  #   Type: AWS::Timestream::Database
+  #   Properties: 
+  #     DatabaseName: !Ref TSDBName
+
+  # TSClimateTable:
+  #   Type: AWS::Timestream::Table
+  #   Properties: 
+  #     DatabaseName: !Ref TSDBName
+  #     TableName: !Ref TSTableName
+  #     # RetentionProperties: Json
+
+  ClimateMsgHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Timeout: 10
+      MemorySize: 640
+      Runtime: nodejs12.x
+      CodeUri: climate-processor/
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        # - AmazonTimestreamFullAccess 
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - timestream:*
+              Resource:
+                - !Sub 'arn:aws:timestream:*:*:database/${TSDBName}/table/${TSTableName}'
+                - !Sub 'arn:aws:timestream:*:*:database/${TSDBName}'
+      Environment:
+        Variables:
+          Region: !Ref 'AWS::Region'
+          TS_DB_NAME: !Ref TSDBName
+          TS_TABLE_NAME: !Ref TSTableName
+      Events:
+        TxRule:
+          Type: IoTRule
+          Properties:
+            Sql: >-
+              SELECT * as payload, topic() as topic, topic(3) as thingname, timestamp() as timestamp from 'home/thing/+/climate'

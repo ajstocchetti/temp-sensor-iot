@@ -1,4 +1,6 @@
 .env
 
+app-output.yaml
+
 node_modules
 package-lock.json

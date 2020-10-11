@@ -1,9 +1,11 @@
 // SELECT * as payload, topic() as topic, topic(3) as thingname, timestamp() as timestamp from 'home/thing/+/climate'
 
+const { Region, TS_TABLE_NAME, TS_DB_NAME } = process.env;
+
 const AWS = require('aws-sdk');
+AWS.config.update({ region: Region });
 const timestreamwrite = new AWS.TimestreamWrite();
 
-const { TS_TABLE_NAME, TS_DB_NAME } = process.env;
 
 exports.handler = async function(event, context) {
   const { payload, thingname, timestamp } = event;
@@ -12,7 +14,8 @@ exports.handler = async function(event, context) {
   const records = measures.filter(measure => payload.hasOwnProperty(measure))
     .map(measure => ({
       MeasureName: measure,
-      MeasureValue: payload[measure],
+      MeasureValue: String(payload[measure]),
+      MeasureValueType: 'DOUBLE',
     }));
 
   if (!records.length) {
@@ -25,11 +28,12 @@ exports.handler = async function(event, context) {
     TableName: TS_TABLE_NAME, 
     Records: records,
     CommonAttributes: {
-      Dimensions: {
-        Name: 'device', Value: thingname,
-        Name: 'sensor', Value: payload.sensor,
-      },
-      Time: timestamp,
+      Dimensions: [
+        { Name: 'device', Value: thingname },
+        { Name: 'sensor', Value: payload.sensor },
+      ],
+      Time: String(timestamp),
+      TimeUnit: 'MILLISECONDS',
     },
   };
   try {
@@ -38,6 +42,6 @@ exports.handler = async function(event, context) {
   } catch(err) {
     console.log('Error writing to Timestream');
     console.log(err);
-    throw err;
+    // throw err;
   }
 }
