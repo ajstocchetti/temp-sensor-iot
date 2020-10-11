@@ -39,6 +39,15 @@ Resources:
           Statement:
             - Effect: Allow
               Action:
+                - timestream:DescribeEndpoints
+                - timestream:ListTables
+                - timestream:CancelQuery
+                - timestream:ListDatabases
+                - timestream:SelectValues
+              Resource: "*"
+          Statement:
+            - Effect: Allow
+              Action:
                 - timestream:*
               Resource:
                 - !Sub 'arn:aws:timestream:*:*:database/${TSDBName}/table/${TSTableName}'

@@ -42,6 +42,6 @@ exports.handler = async function(event, context) {
   } catch(err) {
     console.log('Error writing to Timestream');
     console.log(err);
-    // throw err;
+    throw err;
   }
 }
